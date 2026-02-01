@@ -15,7 +15,7 @@
 
 **Advanced Deep Learning Model with Research-Grade Performance & Real-World Validation**
 
-*Developed by **Ayushi Rathour***
+*Developed by **Monika***
 
 ---
 
@@ -51,7 +51,7 @@ Pneumonia affects millions globally, requiring rapid and accurate diagnosis from
 * **Strong Generalization** with only 8.8% accuracy drop on unseen data
 * **Production Ready** with live web interface and RESTful API
 
-> **⚡ TL;DR:** AI detects pneumonia in pediatric chest X-rays with clinically validated performance. **[Try Live Demo](https://pneumodetectai.streamlit.app/)** | **[Download Model](https://huggingface.co/ayushirathour/chest-xray-pneumonia-detection)**
+> **⚡ TL;DR:** AI detects pneumonia in pediatric chest X-rays with clinically validated performance. **[Try Live Demo](https://pneumodetectai.streamlit.app/)** | **[Download Model](https://huggingface.co/Monika/chest-xray-pneumonia-detection)**
 
 ---
 
