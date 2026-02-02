@@ -92,7 +92,7 @@ This project is a **Research Prototype** developed for educational and internshi
 
 🐙 **GitHub:** [Monika205](https://github.com/Monika205)
 
-💼 **LinkedIn:** [linkedin.com/in/monika-dhingra-742b95304](www.linkedin.com/in/monika-dhingra-742b95304)
+💼 **LinkedIn:** [linkedin-Monika Dhingra](www.linkedin.com/in/monika-dhingra-742b95304)
 
 ---
 
