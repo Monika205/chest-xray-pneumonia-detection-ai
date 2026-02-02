@@ -1,6 +1,3 @@
----
-
-```markdown
 # 🩺 Pediatric Chest X-Ray Pneumonia Detection System
 ### Advanced AI-Driven Clinical Decision Support | Internship Project @ Akoode Technology
 
