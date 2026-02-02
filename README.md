@@ -99,11 +99,3 @@ This project is a **Research Prototype** developed for educational and internshi
 *© 2025 Monika | Developed as part of the Akoode Technology AI Research Initiative.*
 
 ```
-
----
-
-
-
-**Would you like me to give you a checklist of the exact files and folders you should have in your GitHub so it looks 100% professional to your manager at Akoode?**
-
-```
