@@ -1,7 +1,3 @@
-To make this truly stand out for your **Akoode Technology** internship, I have polished the formatting, added a "Key Innovations" section to highlight your engineering decisions, and structured it to look like a professional industry documentation.
-
-**Copy everything from the box below and paste it into your `README.md` file:**
-
 ---
 
 ```markdown
@@ -15,7 +11,7 @@ To make this truly stand out for your **Akoode Technology** internship, I have p
 ---
 
 ## 🚀 Internship Overview
-This project was conceptualized and developed during my professional tenure as an **Intern - AI Associate Engineer** at **Akoode Technology, Gurugram**. 
+This project was conceptualized and develop during my professional tenure as an **Intern - AI Associate Engineer** at **Akoode Technology, Gurugram**. 
 
 The primary objective was to move beyond theoretical models and build a **production-ready pipeline** capable of assisting clinicians in pediatric pneumonia screening. My work focused on bridging the gap between high-accuracy deep learning and **clinical interpretability**.
 
