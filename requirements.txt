@@ -1,6 +1,7 @@
-streamlit
-tensorflow
+streamlit==1.29.0
+tensorflow==2.10.1
+keras==2.10.0
+numpy==1.23.5
 opencv-python-headless
-pydicom
-numpy
 pillow
+scikit-learn
