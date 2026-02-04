@@ -1,12 +1,8 @@
 """
-"""
 FastAPI Server for Pediatric Chest X-Ray Pneumonia Detection
 
 Author: Monika
 Project: PneumoDetectAI
-"""
-
-
 """
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
