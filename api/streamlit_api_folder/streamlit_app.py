@@ -1,166 +1,160 @@
-import streamlit as st
+"""
+FastAPI Server for Pediatric Chest X-Ray Pneumonia Detection
+
+Author: Monika
+Project: PneumoDetectAI
+"""
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import tensorflow as tf
 import numpy as np
 from PIL import Image
 import io
+import uvicorn
 import os
-import time
-import base64
+from pathlib import Path
+import logging
 from datetime import datetime
-from fpdf import FPDF
-import pydicom
-import matplotlib.cm as cm
 
-# -----------------------------
-# Page config
-# -----------------------------
-st.set_page_config(
-    page_title="PneumoDetect AI",
-    page_icon="🫁",
-    layout="centered"
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize FastAPI with metadata
+app = FastAPI(
+    title="🏥 PneumoDetectAI - Pediatric Pneumonia Detection API",
+    description="Clinical-grade AI pneumonia screening: 86% cross-operator validation accuracy, 96.4% sensitivity (485 samples)",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
 )
 
-# -----------------------------
-# Load model (SAFE)
-# -----------------------------
-@st.cache_resource
-def load_model():
-    model_path = "best_chest_xray_model.h5"
-    if not os.path.exists(model_path):
-        st.error("❌ Model file not found")
-        return None
-
-    model = tf.keras.models.load_model(model_path, compile=False)
-    model.compile(
-        optimizer="adam",
-        loss="binary_crossentropy",
-        metrics=["accuracy"]
-    )
-
-    # warm-up
-    dummy = np.random.rand(1, 224, 224, 3).astype(np.float32)
-    model.predict(dummy, verbose=0)
-    return model
-
-
-model = load_model()
-
-# -----------------------------
-# Image helpers
-# -----------------------------
-def dicom_to_pil_image(dicom_bytes):
-    dicom = pydicom.dcmread(io.BytesIO(dicom_bytes))
-    arr = dicom.pixel_array
-    arr = (255 * (arr - arr.min()) / (arr.max() - arr.min())).astype(np.uint8)
-    return Image.fromarray(arr).convert("RGB")
-
-
-def preprocess_image(img):
-    img = img.convert("RGB")
-    img = img.resize((224, 224))
-    arr = np.array(img).astype("float32") / 255.0
-    return np.expand_dims(arr, axis=0)
-
-
-def predict(img):
-    arr = preprocess_image(img)
-    score = model.predict(arr, verbose=0)[0][0]
-
-    if score > 0.5:
-        return "PNEUMONIA", score * 100
-    else:
-        return "NORMAL", (1 - score) * 100
-
-
-# -----------------------------
-# Simple AI focus (fallback CAM)
-# -----------------------------
-def create_ai_focus(img):
-    base = np.array(img.resize((224, 224)))
-    h, w, _ = base.shape
-    y, x = np.ogrid[:h, :w]
-    mask = np.exp(-((x - w//2)**2 + (y - h//2)**2) / (w*h/6))
-    heat = cm.jet(mask)[:, :, :3] * 255
-    overlay = (0.6 * base + 0.4 * heat).astype(np.uint8)
-    return Image.fromarray(overlay)
-
-
-# -----------------------------
-# PDF generator
-# -----------------------------
-def generate_pdf(result, confidence, image, cam):
-    pdf = FPDF()
-    pdf.add_page()
-
-    pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 10, "PneumoDetect AI - Medical Report", 0, 1, "C")
-
-    pdf.set_font("Arial", "", 12)
-    pdf.cell(0, 8, f"Date: {datetime.now()}", 0, 1)
-    pdf.cell(0, 8, f"Diagnosis: {result}", 0, 1)
-    pdf.cell(0, 8, f"Confidence: {confidence:.2f}%", 0, 1)
-    pdf.ln(5)
-
-    img_buf = io.BytesIO()
-    image.save(img_buf, format="PNG")
-    img_buf.seek(0)
-
-    cam_buf = io.BytesIO()
-    cam.save(cam_buf, format="PNG")
-    cam_buf.seek(0)
-
-    pdf.image(img_buf, x=15, y=60, w=80)
-    pdf.image(cam_buf, x=110, y=60, w=80)
-
-    output = pdf.output(dest="S")
-    return output.encode("latin-1")
-
-
-def pdf_download_link(pdf_bytes, filename):
-    b64 = base64.b64encode(pdf_bytes).decode()
-    return f'<a href="data:application/pdf;base64,{b64}" download="{filename}">📄 Download PDF</a>'
-
-
-# -----------------------------
-# UI
-# -----------------------------
-st.title("🫁 PneumoDetect AI")
-st.caption("AI-powered Pneumonia Detection from Chest X-rays")
-
-uploaded = st.file_uploader(
-    "Upload Chest X-ray",
-    type=["jpg", "jpeg", "png", "dcm"]
+# CORS middleware for frontend integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://127.0.0.1:3000",
+        "https://*.vercel.app", 
+        "https://*.netlify.app",  
+        "https://*.onrender.com", 
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-if uploaded and model:
-    if uploaded.name.endswith(".dcm"):
-        image = dicom_to_pil_image(uploaded.read())
-    else:
-        image = Image.open(uploaded)
+# Global model variable
+model = None
+model_info = {
+    "loaded": False,
+    "load_time": None,
+    "model_path": None,
+    "performance": {
+        "accuracy": 86.0,
+        "sensitivity": 96.4,
+        "specificity": 74.8,
+        "false_positive_rate": 25.2,
+        "roc_auc": 0.964,
+        "pr_auc": 0.968
+    }
+}
 
-    st.image(image, caption="Uploaded X-ray", use_container_width=True)
-
-    if st.button("🔬 Analyze"):
-        with st.spinner("Analyzing..."):
-            start = time.time()
-            result, confidence = predict(image)
-            elapsed = time.time() - start
-
-        if result == "PNEUMONIA":
-            st.error(f"🩺 PNEUMONIA detected ({confidence:.2f}%)")
+@app.on_event("startup")
+async def load_model():
+    """Load the trained model on startup"""
+    global model, model_info
+    try:
+        model_paths = [
+            Path("../models/best_chest_xray_model.h5"), 
+            Path("models/best_chest_xray_model.h5"),
+            Path("./best_chest_xray_model.h5")
+        ]
+        for model_path in model_paths:
+            if model_path.exists():
+                logger.info(f"Loading model from: {model_path}")
+                model = tf.keras.models.load_model(model_path)
+                model_info.update({
+                    "loaded": True,
+                    "load_time": datetime.now().isoformat(),
+                    "model_path": str(model_path)
+                })
+                logger.info("✅ Model loaded successfully!")
+                break
         else:
-            st.success(f"✅ NORMAL ({confidence:.2f}%)")
+            logger.error("❌ Model file not found in any expected location")
+    except Exception as e:
+        logger.error(f"❌ Failed to load model: {e}")
 
-        st.info(f"⏱ Analysis time: {elapsed:.2f} seconds")
+def preprocess_image(image: Image.Image) -> np.ndarray:
+    try:
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        image = image.resize((224, 224))
+        img_array = np.array(image)
+        img_array = img_array.astype(np.float32) / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
+        return img_array
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Image preprocessing failed: {str(e)}")
 
-        cam = create_ai_focus(image)
-        st.image(cam, caption="AI Focus (illustrative)", use_container_width=True)
+def interpret_prediction(prediction_score: float) -> dict:
+    if prediction_score > 0.5:
+        diagnosis = "PNEUMONIA"
+        confidence = float(prediction_score * 100)
+        if confidence >= 80:
+            confidence_level = "High"
+            recommendation = "Strong indication of pneumonia. Recommend immediate medical attention."
+        elif confidence >= 60:
+            confidence_level = "Moderate"
+            recommendation = "Moderate indication of pneumonia. Medical review recommended."
+        else:
+            confidence_level = "Low"
+            recommendation = "Possible pneumonia detected. Further examination advised."
+    else:
+        diagnosis = "NORMAL"
+        confidence = float((1 - prediction_score) * 100)
+        if confidence >= 80:
+            confidence_level = "High"
+            recommendation = "No signs of pneumonia detected. Chest X-ray appears normal."
+        elif confidence >= 60:
+            confidence_level = "Moderate"
+            recommendation = "Likely normal chest X-ray. Routine follow-up if symptoms persist."
+        else:
+            confidence_level = "Low"
+            recommendation = "Unclear result. Manual review by radiologist recommended."
+    return {
+        "diagnosis": diagnosis,
+        "confidence": round(confidence, 2),
+        "confidence_level": confidence_level,
+        "recommendation": recommendation,
+        "raw_score": float(prediction_score)
+    }
 
-        pdf = generate_pdf(result, confidence, image, cam)
-        st.markdown(
-            pdf_download_link(pdf, "PneumoDetect_Report.pdf"),
-            unsafe_allow_html=True
-        )
+@app.get("/")
+def read_root():
+    return {
+        "message": "🏥 PneumoDetectAI pneumonia detection API",
+        "status": "running",
+        "model_loaded": model_info["loaded"]
+    }
 
-st.markdown("---")
-st.caption("Developed by **Monika** | MobileNetV2 | TensorFlow")
+@app.post("/predict")
+async def predict_pneumonia(file: UploadFile = File(...)):
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded.")
+    contents = await file.read()
+    image = Image.open(io.BytesIO(contents))
+    processed_image = preprocess_image(image)
+    prediction = model.predict(processed_image, verbose=0)[0]
+    result = interpret_prediction(prediction)
+    return JSONResponse(content=result)
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "api.main:app",
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 7860)),
+        reload=False
+    )
