@@ -1,20 +1,19 @@
+import os
 import streamlit as st
-import numpy as np
-from PIL import Image
 import tensorflow as tf
 
-# --------------------------------------------------
-# PAGE CONFIG
-# --------------------------------------------------
-st.set_page_config(
-    page_title="PneumoDetectAI",
-    page_icon="🫁",
-    layout="centered"
+MODEL_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "best_chest_xray_model.h5"
 )
 
-# --------------------------------------------------
-# LOAD MODEL (ONCE)
-# --------------------------------------------------
+@st.cache_resource
+def load_model():
+    return tf.keras.models.load_model(MODEL_PATH)
+
+model = load_model()
+
+
 @st.cache_resource
 def load_model():
     model = tf.keras.models.load_model("best_chest_xray_model.h5")
