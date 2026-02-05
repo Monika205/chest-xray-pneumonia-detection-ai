@@ -1,7 +1,12 @@
 import os
 import streamlit as st
 import tensorflow as tf
+import numpy as np
+from PIL import Image
 
+# --------------------------------------------------
+# MODEL PATH (SAFE FOR LOCAL + STREAMLIT CLOUD)
+# --------------------------------------------------
 MODEL_PATH = os.path.join(
     os.path.dirname(__file__),
     "best_chest_xray_model.h5"
@@ -10,14 +15,6 @@ MODEL_PATH = os.path.join(
 @st.cache_resource
 def load_model():
     return tf.keras.models.load_model(MODEL_PATH)
-
-model = load_model()
-
-
-@st.cache_resource
-def load_model():
-    model = tf.keras.models.load_model("best_chest_xray_model.h5")
-    return model
 
 model = load_model()
 
@@ -45,7 +42,7 @@ uploaded_file = st.file_uploader(
 )
 
 # --------------------------------------------------
-# IMAGE PREPROCESSING FUNCTION
+# IMAGE PREPROCESSING
 # --------------------------------------------------
 def preprocess_image(image):
     image = image.convert("RGB")
@@ -62,8 +59,6 @@ if uploaded_file is not None:
 
     st.image(image, caption="Uploaded Chest X-ray", use_column_width=True)
 
-    st.markdown("### Click below to analyze the X-ray")
-
     if st.button("🔍 Analyze X-ray"):
         with st.spinner("Analyzing X-ray using AI model..."):
             processed_image = preprocess_image(image)
@@ -71,17 +66,14 @@ if uploaded_file is not None:
 
         st.divider()
 
-        # --------------------------------------------------
-        # RESULT
-        # --------------------------------------------------
         if prediction > 0.5:
             confidence = prediction * 100
-            st.error(f"🦠 **Pneumonia Detected**")
-            st.metric(label="Confidence", value=f"{confidence:.2f}%")
+            st.error("🦠 **Pneumonia Detected**")
+            st.metric("Confidence", f"{confidence:.2f}%")
         else:
             confidence = (1 - prediction) * 100
-            st.success(f"✅ **Normal (No Pneumonia Detected)**")
-            st.metric(label="Confidence", value=f"{confidence:.2f}%")
+            st.success("✅ **Normal (No Pneumonia Detected)**")
+            st.metric("Confidence", f"{confidence:.2f}%")
 
         st.markdown("""
         ### 🩺 Interpretation
