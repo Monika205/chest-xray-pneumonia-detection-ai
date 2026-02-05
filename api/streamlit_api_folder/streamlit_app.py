@@ -1,7 +1,7 @@
 import streamlit as st
-import requests
+import numpy as np
 from PIL import Image
-import io
+import tensorflow as tf
 
 # --------------------------------------------------
 # PAGE CONFIG
@@ -12,65 +12,87 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🫁 PneumoDetectAI")
-st.subheader("AI-powered Pediatric Pneumonia Detection")
-st.markdown(
-    "Upload a pediatric chest X-ray to receive an AI-assisted pneumonia screening result."
-)
+# --------------------------------------------------
+# LOAD MODEL (ONCE)
+# --------------------------------------------------
+@st.cache_resource
+def load_model():
+    model = tf.keras.models.load_model("best_chest_xray_model.h5")
+    return model
+
+model = load_model()
 
 # --------------------------------------------------
-# FASTAPI BACKEND URL
+# TITLE & INTRO
 # --------------------------------------------------
-# 🔴 CHANGE THIS when you deploy FastAPI (Render / Railway / Local)
-API_URL = "http://127.0.0.1:8000/predict"
+st.title("🫁 PneumoDetectAI")
+st.subheader("AI-powered Pneumonia Detection from Chest X-rays")
+
+st.markdown("""
+This application uses a **Deep Learning CNN model** to analyze **pediatric chest X-ray images**
+and predict whether **pneumonia is present or not**.
+
+⚠️ *This tool is for educational purposes only and not a medical diagnosis.*
+""")
+
+st.divider()
 
 # --------------------------------------------------
 # IMAGE UPLOAD
 # --------------------------------------------------
 uploaded_file = st.file_uploader(
-    "Upload Chest X-ray Image",
+    "Upload a Chest X-ray Image",
     type=["jpg", "jpeg", "png"]
 )
 
-if uploaded_file:
+# --------------------------------------------------
+# IMAGE PREPROCESSING FUNCTION
+# --------------------------------------------------
+def preprocess_image(image):
+    image = image.convert("RGB")
+    image = image.resize((224, 224))
+    img_array = np.array(image) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    return img_array
+
+# --------------------------------------------------
+# PREDICTION
+# --------------------------------------------------
+if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Chest X-ray", use_container_width=True)
+
+    st.image(image, caption="Uploaded Chest X-ray", use_column_width=True)
+
+    st.markdown("### Click below to analyze the X-ray")
 
     if st.button("🔍 Analyze X-ray"):
-        with st.spinner("Analyzing image..."):
-            try:
-                # Send image to FastAPI
-                files = {
-                    "file": (
-                        uploaded_file.name,
-                        uploaded_file.getvalue(),
-                        uploaded_file.type
-                    )
-                }
+        with st.spinner("Analyzing X-ray using AI model..."):
+            processed_image = preprocess_image(image)
+            prediction = model.predict(processed_image)[0][0]
 
-                response = requests.post(API_URL, files=files)
+        st.divider()
 
-                if response.status_code == 200:
-                    result = response.json()
+        # --------------------------------------------------
+        # RESULT
+        # --------------------------------------------------
+        if prediction > 0.5:
+            confidence = prediction * 100
+            st.error(f"🦠 **Pneumonia Detected**")
+            st.metric(label="Confidence", value=f"{confidence:.2f}%")
+        else:
+            confidence = (1 - prediction) * 100
+            st.success(f"✅ **Normal (No Pneumonia Detected)**")
+            st.metric(label="Confidence", value=f"{confidence:.2f}%")
 
-                    st.success(f"🩺 Diagnosis: **{result['diagnosis']}**")
-                    st.metric(
-                        label="Confidence",
-                        value=f"{result['confidence']}%"
-                    )
+        st.markdown("""
+        ### 🩺 Interpretation
+        - The model analyzes lung patterns in the X-ray
+        - Higher confidence indicates stronger prediction
+        - Always consult a medical professional
+        """)
 
-                    st.info(
-                        f"**Confidence Level:** {result['confidence_level']}\n\n"
-                        f"**Recommendation:** {result['recommendation']}"
-                    )
-
-                    st.caption(
-                        "⚠️ This tool is for preliminary screening only. "
-                        "Always consult a medical professional."
-                    )
-
-                else:
-                    st.error(f"API Error: {response.text}")
-
-            except Exception as e:
-                st.error(f"Connection error: {e}")
+# --------------------------------------------------
+# FOOTER
+# --------------------------------------------------
+st.divider()
+st.caption("Developed as a Deep Learning project using CNN & Streamlit")
