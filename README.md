@@ -1,4 +1,4 @@
-# 🩺 Pediatric Chest X-Ray Pneumonia Detection System
+# 🩺  Pneumonia Detection System Pediatric Chest X-Ray
 ### Advanced AI-Driven Clinical Decision Support | Internship Project @ Akoode Technology
 
 <p align="center">
@@ -8,7 +8,7 @@
 ---
 
 ## 🚀 Internship Overview
-This project was conceptualized and develop during my professional tenure as an **Intern - AI Associate Engineer** at **Akoode Technology, Gurugram**. 
+This project is conceptualized and develop during my professional tenure as an **Intern - AI Associate Engineer** at **Akoode Technology, Gurugram**. 
 
 The primary objective was to move beyond theoretical models and build a **production-ready pipeline** capable of assisting clinicians in pediatric pneumonia screening. My work focused on bridging the gap between high-accuracy deep learning and **clinical interpretability**.
 
