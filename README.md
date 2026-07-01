@@ -1,5 +1,5 @@
 # 🩺  Pneumonia Detection System 
-### Advanced AI-Driven Clinical Decision Support | Internship Project @ Akoode Technology
+### Advanced AI-Driven Clinical Decision Support | Internship Project @ Team computers 
 
 <p align="center">
   <img src="demo/AI_Detects_Pneumonia_Saves_Childhoods.gif" alt="System Preview" style="width: 100%; max-width: 1000px; height: auto; border-radius: 10px;" />
