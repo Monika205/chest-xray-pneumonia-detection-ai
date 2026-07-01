@@ -5,10 +5,10 @@
   <img src="demo/AI_Detects_Pneumonia_Saves_Childhoods.gif" alt="System Preview" style="width: 100%; max-width: 1000px; height: auto; border-radius: 10px;" />
 </p>
 
----
+
 
 ## 🚀 Internship Overview
-This project is conceptualized and develop during my professional tenure as an **Intern - AI Associate Engineer** at **Akoode Technology, Gurugram**. 
+This project is conceptualized and develop during my professional tenure as an **Intern - Team computers , Gurugram**. 
 
 The primary objective was to move beyond theoretical models and build a **production-ready pipeline** capable of assisting clinicians in pediatric pneumonia screening. My work focused on bridging the gap between high-accuracy deep learning and **clinical interpretability**.
 
@@ -86,7 +86,7 @@ This project is a **Research Prototype** developed for educational and internshi
 
 ## 📞 Professional Connect
 
-**Monika** *Intern - AI Associate Engineer @ Akoode Technology* *B.Tech Data Science @ BML Munjal University*
+**Monika** *Intern - Analytics And AI @ Team Computers *B.Tech Data Science @ BML Munjal University*
 
 📧 **Email:** [monikadhingra205@gmail.com](mailto:monikadhingra205@gmail.com)
 
@@ -96,6 +96,6 @@ This project is a **Research Prototype** developed for educational and internshi
 
 ---
 
-*© 2025 Monika | Developed as part of the Akoode Technology AI Research Initiative.*
+*© 2025 Monika | Developed as part of the Team computers.*
 
 ```
